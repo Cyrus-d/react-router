@@ -1,112 +1,115 @@
-import babel from "rollup-plugin-babel";
-import replace from "rollup-plugin-replace";
-import commonjs from "rollup-plugin-commonjs";
-import nodeResolve from "rollup-plugin-node-resolve";
-import { sizeSnapshot } from "rollup-plugin-size-snapshot";
-import { uglify } from "rollup-plugin-uglify";
-import pkg from "./package.json";
+const babel = require("rollup-plugin-babel");
+const replace = require("rollup-plugin-replace");
+const commonjs = require("rollup-plugin-commonjs");
+const nodeResolve = require("rollup-plugin-node-resolve");
+const { sizeSnapshot } = require("rollup-plugin-size-snapshot");
+const { uglify } = require("rollup-plugin-uglify");
 
-const input = "modules/index.js";
-const name = "ReactRouterConfig";
-const globals = {
-  react: "React",
-  "react-router": "ReactRouter"
-};
-const babelOptions = {
-  exclude: "node_modules/**",
-  plugins: ["external-helpers"]
-};
-const commonjsOptions = {
-  include: "node_modules/**"
-};
+const pkg = require("./package.json");
 
-export default [
+function isBareModuleId(id) {
+  return !id.startsWith(".") && !id.startsWith("/");
+}
+
+const cjs = [
   {
-    input,
-    output: {
-      file: `cjs/${pkg.name}.js`,
-      format: "cjs",
-      name,
-      globals
-    },
-    external: Object.keys(globals),
+    input: "modules/index.js",
+    output: { file: `cjs/${pkg.name}.js`, format: "cjs" },
+    external: isBareModuleId,
     plugins: [
-      babel(babelOptions),
-      nodeResolve(),
-      commonjs(commonjsOptions),
+      babel({ exclude: /node_modules/ }),
       replace({ "process.env.NODE_ENV": JSON.stringify("development") })
     ]
   },
-
   {
-    input,
-    output: {
-      file: `cjs/${pkg.name}.min.js`,
-      format: "cjs",
-      name,
-      globals
-    },
-    external: Object.keys(globals),
+    input: "modules/index.js",
+    output: { file: `cjs/${pkg.name}.min.js`, format: "cjs" },
+    external: isBareModuleId,
     plugins: [
-      babel(babelOptions),
-      nodeResolve(),
-      commonjs(commonjsOptions),
+      babel({ exclude: /node_modules/ }),
       replace({ "process.env.NODE_ENV": JSON.stringify("production") }),
       uglify()
     ]
-  },
+  }
+];
 
+const esm = [
   {
-    input,
-    output: {
-      file: `esm/${pkg.name}.js`,
-      format: "esm",
-      name,
-      globals
-    },
-    external: Object.keys(globals),
+    input: "modules/index.js",
+    output: { file: `esm/${pkg.name}.js`, format: "esm" },
+    external: isBareModuleId,
     plugins: [
-      babel(babelOptions),
-      nodeResolve(),
-      commonjs(commonjsOptions),
+      babel({
+        exclude: /node_modules/,
+        runtimeHelpers: true,
+        plugins: [["@babel/transform-runtime", { useESModules: true }]]
+      }),
       sizeSnapshot()
     ]
-  },
+  }
+];
 
+const globals = { react: "React", "react-router": "ReactRouter" };
+
+const umd = [
   {
-    input,
+    input: "modules/index.js",
     output: {
       file: `umd/${pkg.name}.js`,
       format: "umd",
-      name,
+      name: "ReactRouterConfig",
       globals
     },
     external: Object.keys(globals),
     plugins: [
-      babel(babelOptions),
+      babel({
+        exclude: /node_modules/,
+        runtimeHelpers: true,
+        plugins: [["@babel/transform-runtime", { useESModules: true }]]
+      }),
       nodeResolve(),
-      commonjs(commonjsOptions),
+      commonjs({ include: /node_modules/ }),
       replace({ "process.env.NODE_ENV": JSON.stringify("development") }),
       sizeSnapshot()
     ]
   },
-
   {
-    input,
+    input: "modules/index.js",
     output: {
       file: `umd/${pkg.name}.min.js`,
       format: "umd",
-      name,
+      name: "ReactRouterConfig",
       globals
     },
     external: Object.keys(globals),
     plugins: [
-      babel(babelOptions),
+      babel({
+        exclude: /node_modules/,
+        runtimeHelpers: true,
+        plugins: [["@babel/transform-runtime", { useESModules: true }]]
+      }),
       nodeResolve(),
-      commonjs(commonjsOptions),
+      commonjs({ include: /node_modules/ }),
       replace({ "process.env.NODE_ENV": JSON.stringify("production") }),
       sizeSnapshot(),
       uglify()
     ]
   }
 ];
+
+let config;
+switch (process.env.BUILD_ENV) {
+  case "cjs":
+    config = cjs;
+    break;
+  case "esm":
+    config = esm;
+    break;
+  case "umd":
+    config = umd;
+    break;
+  default:
+    config = cjs.concat(esm).concat(umd);
+}
+
+module.exports = config;

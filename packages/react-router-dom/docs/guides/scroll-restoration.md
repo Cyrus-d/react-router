@@ -13,7 +13,7 @@ Most of the time all you need is to "scroll to the top" because you have a long 
 ```jsx
 class ScrollToTop extends Component {
   componentDidUpdate(prevProps) {
-    if (this.props.location !== prevProps.location) {
+    if (this.props.location.pathname !== prevProps.location.pathname) {
       window.scrollTo(0, 0);
     }
   }
@@ -29,16 +29,18 @@ export default withRouter(ScrollToTop);
 Then render it at the top of your app, but below Router
 
 ```jsx
-const App = () => (
-  <Router>
-    <ScrollToTop>
-      <App/>
-    </ScrollToTop>
-  </Router>
-)
+function App() {
+  return (
+    <Router>
+      <ScrollToTop>
+        <App />
+      </ScrollToTop>
+    </Router>
+  );
+}
 
 // or just render it bare anywhere you want, but just one :)
-<ScrollToTop/>
+<ScrollToTop />;
 ```
 
 If you have a tab interface connected to the router, then you probably don't want to be scrolling to the top when they switch tabs. Instead, how about a `<ScrollToTopOnMount>` in the specific places you need it?

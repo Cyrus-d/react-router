@@ -19,12 +19,12 @@ export default {
   ],
 
   guides: [
-    require("../../../packages/react-router/docs/guides/philosophy.md"),
-    require("../../../packages/react-router-dom/docs/guides/basic-components.md"),
     require("../../../packages/react-router-dom/docs/guides/quick-start.md"),
+    require("../../../packages/react-router-dom/docs/guides/basic-components.md"),
     require("../../../packages/react-router-dom/docs/guides/server-rendering.md"),
     require("../../../packages/react-router-dom/docs/guides/code-splitting.md"),
     require("../../../packages/react-router-dom/docs/guides/scroll-restoration.md"),
+    require("../../../packages/react-router/docs/guides/philosophy.md"),
     require("../../../packages/react-router/docs/guides/testing.md?web"),
     require("../../../packages/react-router/docs/guides/redux.md"),
     require("../../../packages/react-router/docs/guides/static-routes.md"),
@@ -109,6 +109,12 @@ export default {
       slug: "static-router",
       load: require("../examples/StaticRouter?bundle"),
       loadSource: require("../examples/StaticRouter.js?prismjs")
+    },
+    {
+      label: "Query Parameters",
+      slug: "query-parameters",
+      load: require("../examples/QueryParams?bundle"),
+      loadSource: require("../examples/QueryParams.js?prismjs")
     }
   ]
 };

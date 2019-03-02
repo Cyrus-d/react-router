@@ -1,6 +1,5 @@
 import React from "react";
 import ReactDOM from "react-dom";
-
 import { MemoryRouter, HashRouter, Link } from "react-router-dom";
 
 import renderStrict from "./utils/renderStrict";
@@ -14,19 +13,19 @@ describe("A <Link>", () => {
 
   describe("with no <Router>", () => {
     it("throws an error", () => {
-      spyOn(console, "error");
+      jest.spyOn(console, "error").mockImplementation(() => {});
 
       expect(() => {
         renderStrict(<Link to="/">link</Link>, node);
       }).toThrow(/You should not use <Link> outside a <Router>/);
 
-      expect(console.error.calls.count()).toBe(2);
+      expect(console.error).toHaveBeenCalledTimes(2);
     });
   });
 
   describe("with no `to` prop", () => {
     it("logs an error to the console", () => {
-      spyOn(console, "error");
+      jest.spyOn(console, "error").mockImplementation(() => {});
 
       renderStrict(
         <MemoryRouter>
@@ -92,7 +91,7 @@ describe("A <Link>", () => {
     });
   });
 
-  it("exposes its ref via an innerRef prop", done => {
+  it("exposes its ref via an innerRef callback prop", done => {
     function refCallback(n) {
       if (n) {
         expect(n.tagName).toEqual("A");
@@ -103,6 +102,29 @@ describe("A <Link>", () => {
     renderStrict(
       <MemoryRouter>
         <Link to="/" innerRef={refCallback}>
+          link
+        </Link>
+      </MemoryRouter>,
+      node
+    );
+  });
+
+  it("exposes its ref via an innerRef RefObject prop", done => {
+    const refObject = {
+      get current() {
+        return null;
+      },
+      set current(n) {
+        if (n) {
+          expect(n.tagName).toEqual("A");
+          done();
+        }
+      }
+    };
+
+    renderStrict(
+      <MemoryRouter>
+        <Link to="/" innerRef={refObject}>
           link
         </Link>
       </MemoryRouter>,
